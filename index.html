@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=14">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -19,9 +19,11 @@
 </head>
 <body>
 
-<!-- ============ PRELOADER (Lusion: bar + counter) ============ -->
+<!-- ============ PRELOADER: a centre line grows top→bottom, then the black splits open from it ============ -->
 <div id="loader">
-  <div id="loader-bar"><span></span></div>
+  <div class="loader-half loader-left"></div>
+  <div class="loader-half loader-right"></div>
+  <div id="loader-line"></div>
   <div id="loader-count">000</div>
 </div>
 
@@ -267,6 +269,6 @@
   <button id="reel-close" class="pill">CLOSE</button>
 </div>
 
-<script type="module" src="main.js"></script>
+<script type="module" src="main.js?v=21"></script>
 </body>
 </html>

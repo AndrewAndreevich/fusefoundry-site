@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Reveal Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f0f1fa; --ink: #0b0c24; --muted: #6b6d86; --line: rgba(11,12,36,.12); --orange: #ff6a13; --pad: clamp(16px, 4vw, 48px); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  header { padding: 64px var(--pad) 40px; display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
+  h1 { font-family: Sora, sans-serif; font-weight: 400; letter-spacing: -.04em; font-size: clamp(44px, 7vw, 104px); line-height: 1; }
+  .lead { max-width: 380px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+  .btn { font: 600 12px Inter, sans-serif; letter-spacing: .03em; height: 40px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; cursor: pointer; }
+  .btn.light { background: #fff; color: var(--ink); }
+  .tools { display: flex; gap: 8px; }
+  .fx { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: var(--pad); padding: 48px var(--pad); border-top: 1px solid var(--line); align-items: start; }
+  .fx .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--orange); letter-spacing: .1em; }
+  .fx h2 { font-family: Sora, sans-serif; font-weight: 400; font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -.02em; margin: 10px 0 12px; line-height: 1.05; }
+  .fx p { color: var(--muted); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+  .stage { position: relative; aspect-ratio: 16 / 9.4; border-radius: 20px; overflow: hidden; background: #15161b; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  @media (max-width: 760px) { .fx { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <p style="font:500 12px 'JetBrains Mono',monospace;letter-spacing:.12em;color:var(--orange);margin-bottom:14px">FUSE FOUNDRY · IMAGE REVEAL LAB</p>
+    <h1>10 ways to<br>reveal an image</h1>
+  </div>
+  <div>
+    <p class="lead">Each block plays when it scrolls into view. WebGL shaders, so they behave the same in Chrome, Safari and Firefox. Pick a number and it goes on every image of the site.</p>
+    <div class="tools" style="margin-top:18px"><button class="btn" id="all">Replay all</button></div>
+  </div>
+</header>
+<main id="list"></main>
+
+<script>
+const IMAGES = ['img/care-ready.webp', 'img/care-learn.webp', 'img/care-remember.webp', 'img/care-recover.webp', 'img/junior-class.webp',
+                'img/care-vr-elder.webp', 'img/about-corridor.webp', 'img/creative-ai-models.jpg', 'img/care-ready.webp', 'img/care-learn.webp'];
+
+// shared shader prelude: cover-fit sampling, easing, noise
+const HEAD = `
+precision highp float;
+uniform sampler2D uTex; uniform vec2 uRes, uImg; uniform float uP, uT; uniform vec3 uBg;
+varying vec2 vUv;
+vec2 cover(vec2 uv){ float rs=uRes.x/uRes.y, ri=uImg.x/uImg.y; vec2 s = rs>ri ? vec2(1., ri/rs) : vec2(rs/ri, 1.); return (uv-.5)*s+.5; }
+vec3 img(vec2 uv){ return texture2D(uTex, cover(clamp(uv, 0., 1.))).rgb; }
+float inside(vec2 uv){ return step(0., uv.x)*step(uv.x, 1.)*step(0., uv.y)*step(uv.y, 1.); }
+float eOut(float x){ x=clamp(x,0.,1.); return 1.-pow(1.-x, 3.); }
+float eIO(float x){ x=clamp(x,0.,1.); return x<.5 ? 4.*x*x*x : 1.-pow(-2.*x+2., 3.)/2.; }
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7)))*43758.5453); }
+float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*noise(p); p*=2.03; a*=.5; } return v; }
+`;
+
+const FX = [
+  { name: 'Liquid rise', desc: 'An organic, noisy edge rises from below. The image melts and stretches along the edge, with a faint glow on the crest, and settles from a slight zoom.', dur: 1.9, frag: `
+    void main(){
+      float e = eIO(uP);
+      float n = fbm(vUv*vec2(3.,2.) + vec2(uT*.15, 0.));
+      float edge = mix(-.25, 1.25, e) + (n-.5)*.35;
+      float d = vUv.y - edge;
+      float m = smoothstep(.03, -.03, d);
+      float w = exp(-abs(d)*18.)*(1.-e*.6);
+      vec2 uv = (vUv-.5)*(1.-.14*(1.-e))+.5;
+      uv.y -= w*.08; uv.x += w*(n-.5)*.05;
+      vec3 c = mix(uBg, img(uv), m) + w*.22*m;
+      gl_FragColor = vec4(c, 1.);
+    }` },
+  { name: 'Pixel resolve', desc: 'Big pixels light up at random, then resolve into finer and finer pixels until the photo is sharp. Digital and precise.', dur: 1.8, frag: `
+    void main(){
+      float e = eOut(uP);
+      float size = mix(48., 1., pow(e, .55));
+      vec2 cells = uRes/size;
+      vec2 id = floor(vUv*cells);
+      vec2 uv = size > 1.5 ? (id+.5)/cells : vUv;
+      float r = hash(id + floor(size));
+      float m = step(r, uP*1.6);
+      gl_FragColor = vec4(mix(uBg, img(uv), m), 1.);
+    }` },
+  { name: 'RGB slide', desc: 'Red, green and blue each slide up separately with a small lag between them, then lock together. A chromatic glitch that settles into a clean frame.', dur: 1.6, frag: `
+    void main(){
+      float e = eIO(uP);
+      float base = 1.-e;                          // whole frame rises into place
+      float k = (1.-eOut(uP))*.09;               // channels split a little and lock together at the end
+      vec2 ur = vUv + vec2(0., base + k), ug = vUv + vec2(0., base), ub = vUv + vec2(0., base - k);
+      vec3 col = vec3(img(ur).r*inside(ur), img(ug).g*inside(ug), img(ub).b*inside(ub));
+      float any = max(inside(ur), max(inside(ug), inside(ub)));
+      col = mix(uBg, col, any);
+      gl_FragColor = vec4(col, 1.);
+    }` },
+  { name: 'Water drop', desc: 'Opens from the centre like a drop hitting water. The wavefront refracts the image, and the rings die down as it settles.', dur: 2.0, frag: `
+    void main(){
+      float e = eOut(uP);
+      vec2 asp = vec2(uRes.x/uRes.y, 1.);
+      vec2 q = (vUv-.5)*asp;
+      float d = length(q), R = e*1.25;
+      float wave = sin((d-R)*55.)*exp(-abs(d-R)*9.)*(1.-e);
+      vec2 dir = d>0. ? q/d : vec2(0.);
+      vec2 uv = vUv + dir/asp*wave*.035;
+      float m = smoothstep(R, R-.04, d);
+      vec3 c = mix(uBg, img(uv), m) + max(wave, 0.)*.12*m;
+      gl_FragColor = vec4(c, 1.);
+    }` },
+  { name: 'Slice shutter', desc: 'Horizontal strips slide in from alternating sides with a staggered start, closing into one frame like a shutter.', dur: 1.7, frag: `
+    void main(){
+      float N = 9.;
+      float i = floor(vUv.y*N);
+      float t = eIO((uP - i/N*.45)/.55);
+      float dir = mod(i, 2.) < 1. ? -1. : 1.;
+      vec2 uv = vUv + vec2(dir*(1.-t), 0.);
+      uv.x = (uv.x-.5)*(1.+.25*(1.-t))+.5;
+      gl_FragColor = vec4(mix(uBg, img(uv), inside(uv)), 1.);
+    }` },
+  { name: 'Orange burn', desc: 'The image burns through like paper. The edge glows in the brand orange and the mark dissolves along a noise pattern.', dur: 2.2, frag: `
+    void main(){
+      float n = fbm(vUv*4.5);
+      float th = mix(-.1, 1.15, eIO(uP));
+      float m = smoothstep(th, th-.04, n);
+      float edge = smoothstep(.035, 0., abs(n-th)) * (1.-smoothstep(.95, 1.15, th));
+      vec3 c = mix(uBg, img(vUv), m) + edge*vec3(1., .42, .07)*.9;
+      gl_FragColor = vec4(c, 1.);
+    }` },
+  { name: 'Lens bend', desc: 'The image arrives curved like a fisheye lens, with colour fringes at the edges, and flattens out while the frame opens. Closest to the Lusion bend.', dur: 1.8, frag: `
+    vec2 bend(vec2 uv, float k){ uv -= .5; uv *= 1. + k*dot(uv, uv); return uv*(1./(1.+k*.25)) + .5; }
+    void main(){
+      float e = eOut(uP);
+      float k = (1.-e)*1.6;
+      vec3 c = vec3(img(bend(vUv, k*1.08)).r, img(bend(vUv, k)).g, img(bend(vUv, k*.92)).b);
+      vec2 inset = vec2(.5)*(1.-e)*.32;
+      vec2 q = abs(vUv-.5) - (.5 - inset) + .06;
+      float rr = length(max(q, 0.)) - .06;
+      float m = smoothstep(.004, -.004, rr);
+      gl_FragColor = vec4(mix(uBg, c, m), 1.);
+    }` },
+  { name: 'Iris', desc: 'A soft circle opens like a camera aperture. Light in the brand orange runs around its edge, and the image scales down slightly as it opens.', dur: 1.7, frag: `
+    void main(){
+      float e = eIO(uP);
+      vec2 asp = vec2(uRes.x/uRes.y, 1.);
+      float d = length((vUv-.5)*asp);
+      float R = e*1.1;
+      float m = smoothstep(R, R-.015, d);
+      float ring = exp(-abs(d-R)*60.)*(1.-e);
+      vec2 uv = (vUv-.5)*(1.-.2*(1.-e))+.5;
+      vec3 c = mix(uBg, img(uv), m) + ring*vec3(1., .55, .25);
+      gl_FragColor = vec4(c, 1.);
+    }` },
+  { name: 'Data glitch', desc: 'Blocks of the image jump into place with digital noise, scanlines and channel shifts, then everything snaps into a clean frame.', dur: 1.6, frag: `
+    void main(){
+      float e = eOut(uP);
+      float jitter = floor(uT*18.);
+      vec2 blk = floor(vUv*vec2(10., 7.));
+      float h = hash(blk + jitter*.13);
+      float show = step(hash(blk*1.7), uP*1.5);
+      float amp = (1.-e);
+      vec2 uv = vUv + vec2((h-.5)*.35*amp*step(.55, h), 0.);
+      float split = .03*amp;
+      vec3 c = vec3(img(uv+vec2(split,0.)).r, img(uv).g, img(uv-vec2(split,0.)).b);
+      c *= 1. - .25*amp*step(.5, fract(vUv.y*uRes.y*.5));
+      c += amp*.25*step(.92, hash(vec2(floor(vUv.y*80.), jitter)));
+      gl_FragColor = vec4(mix(uBg, c, show), 1.);
+    }` },
+  { name: 'Halftone', desc: 'The photo first appears as a print-style dot screen. The dots grow, merge, and the image turns into a full photograph.', dur: 2.0, frag: `
+    void main(){
+      float e = eIO(uP);
+      float size = 18.;
+      vec2 cells = uRes/size;
+      vec2 id = floor(vUv*cells), f = fract(vUv*cells)-.5;
+      vec3 s = img((id+.5)/cells);
+      float lum = dot(s, vec3(.3,.59,.11));
+      float r = (.25 + .5*lum)*e*1.6;
+      float dotm = smoothstep(r, r-.08, length(f));
+      vec3 c = mix(uBg, s, dotm);
+      c = mix(c, img(vUv), smoothstep(.72, 1., e));
+      gl_FragColor = vec4(c, 1.);
+    }` },
+];
+
+const VERT = 'attribute vec2 p; varying vec2 vUv; void main(){ vUv = p*.5+.5; gl_Position = vec4(p, 0., 1.); }';
+const BG = [21/255, 22/255, 27/255];
+// ?p=0.4 freezes every block at that progress (for inspecting a frame)
+const FREEZE = new URLSearchParams(location.search).has('p') ? parseFloat(new URLSearchParams(location.search).get('p')) : null;
+
+function make(el, fx, src) {
+  const canvas = document.createElement('canvas');
+  el.querySelector('.stage').appendChild(canvas);
+  const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+  const sh = (type, code) => { const s = gl.createShader(type); gl.shaderSource(s, code); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(fx.name, gl.getShaderInfoLog(s)); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, HEAD + fx.frag));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(prog, n);
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([21, 22, 27, 255]));
+  ['TEXTURE_MIN_FILTER', 'TEXTURE_MAG_FILTER'].forEach(k => gl.texParameteri(gl.TEXTURE_2D, gl[k], gl.LINEAR));
+  ['TEXTURE_WRAP_S', 'TEXTURE_WRAP_T'].forEach(k => gl.texParameteri(gl.TEXTURE_2D, gl[k], gl.CLAMP_TO_EDGE));
+  const state = { start: -1, img: [1, 1], ready: false };
+  const im = new Image();
+  im.onload = () => {
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+    state.img = [im.naturalWidth, im.naturalHeight]; state.ready = true;
+  };
+  im.src = src;
+  gl.uniform3fv(U('uBg'), BG);
+  function draw(now) {
+    const dpr = Math.min(devicePixelRatio, 2), w = canvas.clientWidth * dpr | 0, h = canvas.clientHeight * dpr | 0;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+    const p = FREEZE !== null ? (state.ready ? FREEZE : 0) : state.start < 0 || !state.ready ? 0 : Math.min(1, (now - state.start) / 1000 / fx.dur);
+    gl.uniform2f(U('uRes'), w, h); gl.uniform2f(U('uImg'), state.img[0], state.img[1]);
+    gl.uniform1f(U('uP'), p); gl.uniform1f(U('uT'), now / 1000);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return p;
+  }
+  return { draw, play() { state.start = performance.now(); }, state };
+}
+
+const list = document.getElementById('list');
+const items = FX.map((fx, i) => {
+  const el = document.createElement('section');
+  el.className = 'fx';
+  el.innerHTML = `<div><span class="num">${String(i + 1).padStart(2, '0')}</span><h2>${fx.name}</h2><p>${fx.desc}</p>
+    <button class="btn light">Replay</button></div><div class="stage"></div>`;
+  list.appendChild(el);
+  const r = make(el, fx, IMAGES[i]);
+  el.querySelector('button').onclick = () => r.play();
+  r.visible = false;
+  new IntersectionObserver(([en]) => {
+    r.visible = en.isIntersecting;
+    if (en.isIntersecting && r.state.start < 0) r.play();
+  }, { threshold: 0.45 }).observe(el.querySelector('.stage'));
+  return r;
+});
+document.getElementById('all').onclick = () => items.forEach(r => r.play());
+(function loop(now) {
+  requestAnimationFrame(loop);
+  for (const r of items) if (r.visible || FREEZE !== null) r.draw(now);
+})(performance.now());
+</script>
+</body>
+</html>

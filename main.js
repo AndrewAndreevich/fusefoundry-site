@@ -9,18 +9,23 @@ const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
 /* ---------------- preloader ---------------- */
 document.body.classList.add('loading');
-const bar = document.querySelector('#loader-bar span');
-const count = document.querySelector('#loader-count');
+const line = document.getElementById('loader-line');
+const count = document.getElementById('loader-count');
 let shown = 0, target = 0;
 function setLoad(p) { target = Math.max(target, p); }
 (function tickLoader() {
-  shown = Math.min(target, shown + Math.max((target - shown) * 0.12, 0.8));
+  shown = Math.min(target, shown + Math.max((target - shown) * 0.08, 0.5));
   const v = Math.round(shown);
-  bar.style.width = v + '%';
+  line.style.transform = `scaleY(${shown / 100})`;
   count.textContent = String(v).padStart(3, '0');
   if (v >= 100) {
-    document.getElementById('loader').classList.add('done');
-    document.body.classList.remove('loading');
+    // line has reached the bottom: split the black open from the centre
+    const loader = document.getElementById('loader');
+    setTimeout(() => {
+      loader.classList.add('done');
+      document.body.classList.remove('loading');
+      setTimeout(() => loader.classList.add('gone'), 1400);
+    }, 250);
     return;
   }
   requestAnimationFrame(tickLoader);
@@ -88,20 +93,51 @@ function buildHero() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const scene = new THREE.Scene();
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-  camera.position.set(0, 0, 19);
+  scene.environmentIntensity = 1.1;
+  const bg = document.createElement('canvas'); bg.width = bg.height = 256;
+  const g = bg.getContext('2d'), grd = g.createRadialGradient(180, 90, 10, 180, 90, 260);
+  grd.addColorStop(0, '#34353d'); grd.addColorStop(0.55, '#16171c'); grd.addColorStop(1, '#0b0c0f');
+  g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+  scene.background = new THREE.CanvasTexture(bg); scene.background.colorSpace = THREE.SRGBColorSpace;
+  renderer.toneMappingExposure = 1.05;
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+  camera.position.set(0, 0, 11);
 
-  // logo mark (ring + orange square) and plain spheres, in a restrained studio palette
-  const ringGeo = new THREE.TorusGeometry(0.92, 0.3, 32, 96);
-  const cubeGeo = new RoundedBoxGeometry(0.6, 0.6, 0.6, 4, 0.07);
-  const ballGeo = new THREE.SphereGeometry(1, 48, 32);
-  const gloss = { roughness: 0.32, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.12 };
-  const rings = new THREE.InstancedMesh(ringGeo, new THREE.MeshPhysicalMaterial(gloss), 16);
-  const cubes = new THREE.InstancedMesh(cubeGeo, new THREE.MeshPhysicalMaterial({ color: '#ff6a13', roughness: 0.45, clearcoat: 0.6 }), 16);
-  const balls = new THREE.InstancedMesh(ballGeo, new THREE.MeshPhysicalMaterial(gloss), 14);
-  const metal = new THREE.InstancedMesh(ballGeo, new THREE.MeshPhysicalMaterial({ color: '#b9a27a', metalness: 1, roughness: 0.22 }), 4);
-  const porcelain = new THREE.Color('#eceae4'), graphite = new THREE.Color('#2a2b31'), ink = new THREE.Color('#0f1014');
-  const tones = [porcelain, porcelain, graphite, ink];
+  // logo mark (ring + orange square) and plain spheres; studio materials incl. translucent glass
+  const ringGeo = new THREE.TorusGeometry(0.92, 0.3, 48, 128);
+  const cubeGeo = new RoundedBoxGeometry(0.6, 0.6, 0.6, 5, 0.08);
+  const ballGeo = new THREE.SphereGeometry(1, 64, 48);
+  // fine grain for the soft-touch finish (the velvety, slightly speckled matte look)
+  const grainCanvas = document.createElement('canvas'); grainCanvas.width = grainCanvas.height = 256;
+  const gctx = grainCanvas.getContext('2d'), gimg = gctx.createImageData(256, 256);
+  for (let i = 0; i < gimg.data.length; i += 4) {
+    const v = 110 + Math.random() * 145;
+    gimg.data[i] = gimg.data[i + 1] = gimg.data[i + 2] = v; gimg.data[i + 3] = 255;
+  }
+  gctx.putImageData(gimg, 0, 0);
+  const grain = new THREE.CanvasTexture(grainCanvas);
+  grain.wrapS = grain.wrapT = THREE.RepeatWrapping; grain.repeat.set(6, 3);
+  const softTouch = (color, sheenColor) => new THREE.MeshPhysicalMaterial({
+    color, roughness: 0.82, roughnessMap: grain, bumpMap: grain, bumpScale: 0.6,
+    sheen: 1, sheenRoughness: 0.75, sheenColor, specularIntensity: 0.35,
+  });
+  const MAT = {
+    // glossy porcelain white
+    porcelain: new THREE.MeshPhysicalMaterial({ color: '#f4f1eb', roughness: 0.3, sheen: 0.6, sheenRoughness: 0.4, sheenColor: '#ffffff', clearcoat: 1, clearcoatRoughness: 0.12 }),
+    // glossy brand orange (lacquered) and soft-touch charcoal black
+    peach: new THREE.MeshPhysicalMaterial({ color: '#ff6a13', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.0, specularIntensity: 1, envMapIntensity: 1.8 }),
+    charcoal: softTouch('#1b1b1e', '#5a5a62'),
+    // frosted glass with a warm body tint
+    glass: new THREE.MeshPhysicalMaterial({ color: '#ffffff', transmission: 1, thickness: 0.5, roughness: 0.12, ior: 1.35, attenuationColor: '#fff4ea', attenuationDistance: 6, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.6 }),
+    // soft champagne metal
+    metal: new THREE.MeshPhysicalMaterial({ color: '#d7c29e', metalness: 1, roughness: 0.32, clearcoat: 0.4, clearcoatRoughness: 0.2 }),
+    // brand square: translucent orange resin that glows a little from within
+    resin: new THREE.MeshPhysicalMaterial({ color: '#ff6a13', transmission: 0.45, thickness: 0.6, roughness: 0.3, ior: 1.5, attenuationColor: '#ff4a00', attenuationDistance: 0.5, emissive: '#ff5a10', emissiveIntensity: 0.12, clearcoat: 1, clearcoatRoughness: 0.1 }),
+  };
+  const RINGS = { porcelain: 4, peach: 4, charcoal: 3, glass: 1 }, BALLS = { porcelain: 3, peach: 4, charcoal: 3, metal: 1 };
+  const ringCount = Object.values(RINGS).reduce((a, b) => a + b, 0);
+  const cubes = new THREE.InstancedMesh(cubeGeo, MAT.resin, ringCount);
+  const meshes = [cubes];
   const bodies = [];
   // colliders: a ring is a chain of tube spheres + a hole plug + the orange square; balls are one sphere
   const ringParts = [];
@@ -110,26 +146,31 @@ function buildHero() {
     ringParts.push({ o: new THREE.Vector3(Math.cos(t) * 0.92, Math.sin(t) * 0.92, 0), r: 0.31 });
   }
   ringParts.push({ o: new THREE.Vector3(), r: 0.64 }, { o: new THREE.Vector3(0.8, 0.8, 0.12), r: 0.52 });
-  const spawn = (mesh, i, r, color) => {
-    if (color) mesh.setColorAt(i, color);
-    const parts = mesh === rings ? ringParts : [{ o: new THREE.Vector3(), r }];
-    const R = mesh === rings ? 1.65 : r;
+  const spawn = (mesh, i, ring, r, ci) => {
+    const parts = ring ? ringParts : [{ o: new THREE.Vector3(), r }];
+    const R = ring ? 1.65 : r;
     bodies.push({
-      mesh, i, r, R, parts, inv: 1 / (R * R * R),
+      mesh, i, ring, ci, r, R, parts, inv: 1 / (R * R * R),
       wo: parts.map(() => new THREE.Vector3()),
-      p: new THREE.Vector3((Math.random() - .5) * 18, (Math.random() - .5) * 12, (Math.random() - .5) * 6),
+      p: new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .5) * 9, (Math.random() - .5) * 4),
       v: new THREE.Vector3(),
-      // marks rest almost facing the camera so the logo reads; pushes spin them, then they settle back
-      base: new THREE.Quaternion().setFromEuler(new THREE.Euler((Math.random() - .5) * 1.1, (Math.random() - .5) * 1.1, (Math.random() - .5) * 0.6)),
+      // marks rest nearly facing the camera so the logo reads; pushes spin them, then they settle back
+      base: new THREE.Quaternion().setFromEuler(new THREE.Euler((Math.random() - .5) * 0.7, (Math.random() - .5) * 0.7, (Math.random() - .5) * 0.5)),
       q: new THREE.Quaternion().random(),
       w: new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(0.25),
     });
   };
-  for (let i = 0; i < rings.count; i++) spawn(rings, i, 1.22, tones[i % tones.length]);
-  for (let i = 0; i < balls.count; i++) spawn(balls, i, 0.7 + Math.random() * 0.45, tones[(i + 1) % tones.length]);
-  for (let i = 0; i < metal.count; i++) spawn(metal, i, 0.55 + Math.random() * 0.3);
+  let ci = 0;
+  for (const [k, count] of Object.entries(RINGS)) {
+    const mesh = new THREE.InstancedMesh(ringGeo, MAT[k], count); meshes.push(mesh);
+    for (let i = 0; i < count; i++) spawn(mesh, i, true, 1.22, ci++);
+  }
+  for (const [k, count] of Object.entries(BALLS)) {
+    const mesh = new THREE.InstancedMesh(ballGeo, MAT[k], count); meshes.push(mesh);
+    for (let i = 0; i < count; i++) spawn(mesh, i, false, k === 'metal' ? 0.5 + Math.random() * 0.25 : 0.6 + Math.random() * 0.4);
+  }
   const N = bodies.length;
-  scene.add(rings, cubes, balls, metal);
+  scene.add(...meshes);
   // soft studio light: big neutral fill, warm key, cool back rim
   scene.add(new THREE.HemisphereLight('#f4f1ea', '#1a1b20', 0.9));
   const key = new THREE.DirectionalLight('#fff1e2', 2.4); key.position.set(-6, 9, 10); scene.add(key);
@@ -148,7 +189,9 @@ function buildHero() {
   function resize() {
     const { clientWidth: w, clientHeight: h } = canvas;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    center.set(w > 700 ? 2.8 * Math.min(camera.aspect, 1.8) : 0, w > 700 ? 0.6 : 2, 0); // keep the headline clear
+    // park the cluster against the right edge so the headline (bottom-left) stays clear
+    const halfW = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+    center.set(w > 700 ? Math.max(0, halfW - 3.6) : 0, w > 700 ? 0.4 : 1.2, 0); // keep the headline clear
   }
   new ResizeObserver(resize).observe(canvas); resize();
 
@@ -171,7 +214,7 @@ function buildHero() {
       a.p.addScaledVector(a.v, dt * 4 * s);
       dq.setFromAxisAngle(tmp.copy(a.w).normalize(), a.w.length() * dt * s * (1 + a.v.length()));
       a.q.premultiply(dq);
-      if (a.mesh === rings) a.q.slerp(a.base, Math.min(1, dt * 0.8 * s));
+      if (a.ring) a.q.slerp(a.base, Math.min(1, dt * 0.8 * s));
       a.parts.forEach((pt, k) => a.wo[k].copy(pt.o).applyQuaternion(a.q));
     }
     // 2. hard contacts: push overlapping bodies apart so they only touch, and kill the closing speed
@@ -208,15 +251,15 @@ function buildHero() {
     }
     // 3. write instances
     for (const a of bodies) {
-      if (a.mesh === rings) {
-        m.compose(a.p, a.q, one); rings.setMatrixAt(a.i, m);
+      if (a.ring) {
+        m.compose(a.p, a.q, one); a.mesh.setMatrixAt(a.i, m);
         cubeOffset.set(0.8, 0.8, 0.12).applyQuaternion(a.q).add(a.p);   // square sits on the ring at ~1 o'clock
-        m.compose(cubeOffset, a.q, one); cubes.setMatrixAt(a.i, m);
+        m.compose(cubeOffset, a.q, one); cubes.setMatrixAt(a.ci, m);
       } else {
         scale.setScalar(a.r); m.compose(a.p, a.q, scale); a.mesh.setMatrixAt(a.i, m);
       }
     }
-    for (const im of [rings, cubes, balls, metal]) im.instanceMatrix.needsUpdate = true;
+    for (const im of meshes) im.instanceMatrix.needsUpdate = true;
     renderer.render(scene, camera);
   };
 }
@@ -292,6 +335,29 @@ function buildTunnel() {
   };
 }
 
+/* ---------------- featured cards: scroll reveal + slot-machine titles ---------------- */
+const cards = [...document.querySelectorAll('.card')];
+cards.forEach(card => {
+  const h3 = card.querySelector('h3');
+  const text = h3.textContent.trim();
+  h3.setAttribute('aria-label', text);
+  h3.innerHTML = '<span class="card-arrow" aria-hidden="true">→</span>' + [...text].map((ch, i) => {
+    const c = ch === ' ' ? '&nbsp;' : ch;
+    return `<span class="roll" aria-hidden="true" style="--i:${i}"><span>${c}</span><span>${c}</span></span>`;
+  }).join('');
+});
+function updateCards() {
+  const vh = innerHeight;
+  cards.forEach((card, i) => {
+    const r = card.getBoundingClientRect();
+    if (r.top > vh || r.bottom < 0) { if (r.top > vh) card.style.setProperty('--p', 0); return; }
+    // opens over the first ~55% of the viewport it travels; the right column trails a little
+    const raw = clamp((vh - r.top) / (vh * 0.55) - (i % 2) * 0.08);
+    const p = 1 - Math.pow(1 - raw, 3);
+    card.style.setProperty('--p', p.toFixed(4));
+  });
+}
+
 /* ---------------- main loop ---------------- */
 let hero = () => {}, tunnel = () => {};
 try { hero = buildHero(); tunnel = buildTunnel(); } catch (err) { console.warn('WebGL unavailable', err); }
@@ -302,6 +368,7 @@ const approach = document.getElementById('home-approach');
 (function loop() {
   const dt = Math.min(clock.getDelta(), 1 / 30), time = clock.elapsedTime;
   hero(dt); tunnel(dt, time);
+  updateCards();
 
   document.body.classList.toggle('scrolled', scrollY > 60);
   const ar = approach.getBoundingClientRect();
