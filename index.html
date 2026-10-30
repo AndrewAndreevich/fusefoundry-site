@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuse Foundry — AI & Immersive Technology Integration Partner</title>
+<meta name="description" content="Singapore-based integration and adoption partner for AI, creative automation and immersive technology across Asia.">
+<link rel="icon" href="https://fusefoundry.asia/icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+
+<!-- ============ PRELOADER (Lusion: bar + counter) ============ -->
+<div id="loader">
+  <div id="loader-bar"><span></span></div>
+  <div id="loader-count">000</div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header id="header">
+  <a id="header-logo" href="#home-hero" aria-label="Fuse Foundry home">
+    <span class="logo-main">FUSE</span><span class="logo-sub">FOUNDRY</span>
+  </a>
+  <p id="header-center">AI and immersive tech, integrated into the way your business actually runs</p>
+  <div id="header-right">
+    <button id="sound-btn" class="pill pill-icon" aria-label="Toggle motion"><span></span></button>
+    <a id="talk-btn" class="pill pill-dark" href="#contact">LET'S TALK <i class="dot"></i></a>
+    <button id="menu-btn" class="pill" aria-expanded="false">
+      <span class="menu-open">MENU</span><span class="menu-close">CLOSE</span><i class="dots"><b></b><b></b></i>
+    </button>
+  </div>
+
+  <nav id="menu" aria-hidden="true">
+    <div class="menu-links">
+      <a href="#home-hero">HOME</a>
+      <a href="#home-about">WHO WE ARE</a>
+      <a href="#home-featured">PRODUCTS</a>
+      <a href="#home-services">SERVICES</a>
+      <a href="#home-approach">APPROACH</a>
+      <a href="#contact">CONTACT</a>
+    </div>
+    <div class="menu-card">
+      <h3>Bootcamp courses<br>enrolling now</h3>
+      <a class="menu-course" href="https://fusefoundry.asia/immersion/#frame" target="_blank" rel="noopener">
+        <small>Immersive video + AI · Ages 10+</small>Junior Class<em>30 Nov–5 Dec · from S$888</em>
+      </a>
+      <a class="menu-course" href="https://fusefoundry.asia/immersion/#master" target="_blank" rel="noopener">
+        <small>Immersive filmmaking · Pro</small>Master Class<em>4–7 Dec · S$2,000</em>
+      </a>
+    </div>
+    <a class="menu-labs" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+      <span>FUSE IMMERSION<br>FOR CARE</span><span class="arrow">↗</span>
+    </a>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ 01 HERO (Lusion: tagline + 3D canvas card + scroll markers) ============ -->
+<section id="home-hero" class="section">
+  <h1 class="sr">Fuse Foundry — your technology integration partner</h1>
+  <div id="hero-card">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-overlay">
+      <p class="mono">SINGAPORE-BASED · ASIA-WIDE</p>
+      <h2>Your technology<br><span class="accent">integration partner.</span></h2>
+    </div>
+  </div>
+  <div class="markers"><i>+</i><i>+</i><span>SCROLL TO EXPLORE</span><i>+</i><i>+</i></div>
+</section>
+
+<!-- ============ 02 STATEMENT + REEL (Lusion: "Bold Ideas" + Play Reel) ============ -->
+<section id="home-reel" class="section">
+  <svg id="ribbon" viewBox="0 0 1200 900" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M-40,120 C260,40 420,420 220,560 C40,690 420,860 760,700 C1040,570 1000,240 1260,260"/>
+  </svg>
+  <h2 class="big reveal">We integrate technology.<br><span class="indent">Not products.</span></h2>
+  <div class="statement-row">
+    <div class="statement-media reveal">
+      <img src="img/care-vr-elder.webp" alt="Elderly man smiling in a VR headset while a carer looks on" loading="lazy">
+    </div>
+    <div class="statement-text reveal">
+      <p>Most organisations don't have a technology problem. They have a connection problem: scattered tools, disjointed workflows, and adoption that never quite sticks. We bring the right creators to the table, connect the system to real operations, and stay until it becomes a working capability.</p>
+      <a class="pill pill-light" href="#home-approach"><i class="dot dark"></i> OUR APPROACH</a>
+    </div>
+  </div>
+
+  <div class="markers markers-top"><i>+</i><i>+</i><i>+</i><i>+</i><i>+</i></div>
+  <button id="reel" aria-label="Play reel">
+    <video id="reel-preview" src="https://fusefoundry.asia/studio/phygital-reel.mp4" muted loop playsinline preload="metadata"></video>
+    <span class="reel-word">PLAY</span><span class="reel-btn">▶</span><span class="reel-word">REEL</span>
+  </button>
+  <div class="markers"><i>+</i><i>+</i><i>+</i><i>+</i><i>+</i></div>
+</section>
+
+<!-- ============ 03 FEATURED WORK → PRODUCT ECOSYSTEM ============ -->
+<section id="home-featured" class="section">
+  <div class="featured-head">
+    <h2 class="big reveal">Featured Systems</h2>
+    <p class="mono small">FOUR SPECIALIST SYSTEMS AND THE PROGRAMMES BUILT ON THEM. ONE INTEGRATION PARTNER.</p>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="https://fusefoundry.asia/workspace/" target="_blank" rel="noopener" data-color="#1c1d4a">
+      <div class="card-media art art-workspace"><span class="art-label">Not another chatbot.<br>A digital workforce.</span></div>
+      <p class="tags">OPERATIONS • AI AGENTS • CRM • FINANCE • DAILY BRIEFS</p>
+      <h3>Fuse Workspace</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/studio/#platform" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/creative-ai-models.jpg" alt="Grid of AI engine logos available in Phygital+: Nano Banana, Kling, Sora, ChatGPT, Hailuo, Imagen, Flux, Recraft, ElevenLabs, Magnific, Seedance, Runway, Midjourney, Ideogram, SeeDream, Qwen, Veo, Krea, Topaz Labs, Gemini" loading="lazy"></div>
+      <p class="tags">CREATIVE • PHYGITAL+ • 30+ AI ENGINES • SEA LOCALISATION</p>
+      <h3>Fuse Creative</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/studio/" target="_blank" rel="noopener">
+      <div class="card-media"><video src="https://fusefoundry.asia/studio/phygital-reel.mp4" muted loop playsinline preload="metadata"></video></div>
+      <p class="tags">PRODUCTION • AI COMMERCIALS • LIVE-STREAM SALES • SHORT DRAMAS</p>
+      <h3>Fuse Studio</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/" target="_blank" rel="noopener">
+      <div class="card-media art art-immersion"><span class="art-label">360° · VR180 · Stereo 3D<br>XR · Haptics · Digital twins</span></div>
+      <p class="tags">IMMERSION • VR • AR • MR • KIOSKS • PROJECTION</p>
+      <h3>Fuse Immersion</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/care-ready.webp" alt="Boy and his mother in a calm therapy room with a therapist, the mother wearing a VR headset" loading="lazy"></div>
+      <p class="tags">CARE • HEALTH • SPECIAL NEEDS • READY</p>
+      <h3>Immersion for Care: Ready</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/care-learn.webp" alt="Schoolgirl in a VR headset reaching up in a sunlit classroom while classmates and a teacher watch" loading="lazy"></div>
+      <p class="tags">CARE • SCHOOLS • EDUCATORS • LEARN</p>
+      <h3>Immersion for Care: Learn</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/care-remember.webp" alt="Elderly woman in a VR headset holding an old family photograph beside a smiling carer" loading="lazy"></div>
+      <p class="tags">CARE • ELDERCARE • REMINISCENCE • REMEMBER</p>
+      <h3>Immersion for Care: Remember</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/care-recover.webp" alt="Man in a VR headset raising his arm at rehabilitation bars while a physiotherapist supports his elbow" loading="lazy"></div>
+      <p class="tags">CARE • HOSPITALS • REHABILITATION • RECOVER</p>
+      <h3>Immersion for Care: Recover</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/#frame" target="_blank" rel="noopener">
+      <div class="card-media"><img src="img/junior-class.webp" alt="Two teenagers filming with a 360 camera and editing footage on a laptop" loading="lazy"></div>
+      <p class="tags">BOOTCAMP • IMMERSIVE VIDEO + AI • AGES 10+ • 30 NOV–5 DEC</p>
+      <h3>Immersive Media Junior Class</h3>
+    </a>
+    <a class="card" href="https://fusefoundry.asia/immersion/#master" target="_blank" rel="noopener">
+      <div class="card-media"><img src="https://fusefoundry.asia/immersion/care/img/door.webp" alt="" loading="lazy"></div>
+      <p class="tags">BOOTCAMP • IMMERSIVE FILMMAKING • PRO • 4–7 DEC</p>
+      <h3>Immersive Media Master Class</h3>
+    </a>
+  </div>
+  <div class="center"><a class="pill pill-dark" href="https://fusefoundry.asia/#products" target="_blank" rel="noopener"><i class="dot"></i> SEE ALL PRODUCTS</a></div>
+</section>
+
+<!-- ============ 04 "WHERE CREATIVE IDEAS…" → WHO WE ARE + SERVICE LAYER ============ -->
+<section id="home-about" class="section">
+  <svg id="ribbon2" viewBox="0 0 1200 900" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M700,-40 C620,200 980,260 940,420 C900,600 520,520 560,720 C590,860 880,880 1240,820"/>
+  </svg>
+  <h2 class="big reveal">Close to the creators.<br>Committed to the outcome.</h2>
+  <div class="about-row">
+    <div class="about-media reveal"><img src="img/about-corridor.webp" alt="Nurse and a young woman walking an elderly man in a wheelchair down a quiet hospital corridor" loading="lazy"></div>
+    <div class="about-text reveal">
+      <p>Fuse Foundry is an integration and adoption partner for immersive learning, content, and enabling technologies — bringing together strategy, production, technical creators, deployment, and long-term capability transfer.</p>
+      <p>Singapore-based and regionally connected, we help businesses across Asia adopt creative automation, enterprise productivity, and immersive technologies — strategically, not reactively.</p>
+    </div>
+  </div>
+
+  <ul class="diff">
+    <li class="reveal"><span class="mono">01</span><h4>Direct creator access</h4><p>Faster feedback, quicker customisation, and support from people who understand the technology from the inside.</p></li>
+    <li class="reveal"><span class="mono">02</span><h4>Built to ship, not to pitch</h4><p>Grounded in operations and commercial production, designed to run and scale beyond a demonstration.</p></li>
+    <li class="reveal"><span class="mono">03</span><h4>Built for Asia</h4><p>Regional relationships and cultural context shape solutions for the realities of Asian markets.</p></li>
+    <li class="reveal"><span class="mono">04</span><h4>Adoption over handover</h4><p>No generic playbook. We stay until teams are confident and the system performs.</p></li>
+  </ul>
+
+  <div id="home-services">
+    <p class="mono small">THE SERVICE LAYER — TECHNOLOGY THAT WORKS. CAPABILITY YOUR TEAM OWNS.</p>
+    <ol class="services">
+      <li><span>A / 01</span><h4>Strategy, audit &amp; opportunity mapping</h4><p>We map your workflows, identify the highest-return opportunities, define requirements, and build a practical transformation roadmap.</p></li>
+      <li><span>A / 02</span><h4>Systems integration</h4><p>CRM, ERP, SSO, APIs, platforms, hardware, data, and automation connected into a coherent infrastructure.</p></li>
+      <li><span>A / 03</span><h4>Workflow automation</h4><p>Manual handoffs and repetitive processes redesigned into faster, connected workflows.</p></li>
+      <li><span>A / 04</span><h4>Custom platforms &amp; software</h4><p>Dashboards, portals, workstations, mobile tools, and kiosks shaped around your operations.</p></li>
+      <li><span>A / 05</span><h4>Training &amp; adoption</h4><p>Hands-on, on-site enablement until teams use the new capability with confidence.</p></li>
+      <li><span>A / 06</span><h4>Managed growth &amp; improvement</h4><p>Post-launch support, performance reviews, optimisation, and new capability deployment as your needs evolve.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 05 PINNED 3D JOURNEY (Lusion: "Step into a new world") → 7-STEP APPROACH ============ -->
+<section id="home-approach" class="section">
+  <div class="pin">
+    <canvas id="tunnel-canvas"></canvas>
+    <div class="journey-intro">
+      <p class="mono">HOW INTEGRATION WORKS</p>
+      <h2>FROM DISCOVERY<br>TO ADOPTION</h2>
+    </div>
+    <ol class="journey-steps">
+      <li><span>01</span><h3>Understand</h3><p>Clarify the outcome, constraint, people, and operational reality behind the request.</p></li>
+      <li><span>02</span><h3>Discover</h3><p>Map current workflows, stakeholders, systems, goals, and the highest-value opportunity.</p></li>
+      <li><span>03</span><h3>Select</h3><p>Evaluate creators, platforms, and hardware for capability, fit, support, and long-term viability.</p></li>
+      <li><span>04</span><h3>Connect</h3><p>Integrate every component and configure the workflow around real teams and existing systems.</p></li>
+      <li><span>05</span><h3>Empower</h3><p>Put the capability into use with hands-on training and a supported go-live.</p></li>
+      <li><span>06</span><h3>Support</h3><p>Stay close after launch, when feedback becomes real and refinements matter most.</p></li>
+      <li><span>07</span><h3>Improve</h3><p>Measure, optimise, refresh, and extend the system as capabilities and needs evolve.</p></li>
+    </ol>
+    <div class="journey-progress"><b></b></div>
+  </div>
+</section>
+
+<!-- ============ 06 END CTA (Lusion: "Let's work together!") ============ -->
+<section id="contact" class="section">
+  <p class="mono">START WITH THE BUSINESS NEED</p>
+  <h2 class="cta-title"><a href="mailto:wolfie@fusefoundry.asia?subject=Fuse%20Foundry%20Discovery%20Conversation">Let's work<br>together!</a></h2>
+  <p class="cta-sub">Book a complimentary discovery workshop. Tell us what you are trying to change — we will map the right solution, creator relationships, and path to adoption.</p>
+  <div class="markers"><i>+</i><i>+</i><span>CONTINUE TO SCROLL</span><i>+</i><i>+</i></div>
+</section>
+
+<!-- ============ 07 FOOTER ============ -->
+<footer id="footer" class="section">
+  <div class="footer-grid">
+    <div>
+      <p>Singapore-based<br>Asia-wide</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://fusefoundry.asia/workspace/" target="_blank" rel="noopener">Workspace</a>
+      <a href="https://fusefoundry.asia/studio/" target="_blank" rel="noopener">Studio</a>
+      <a href="https://fusefoundry.asia/immersion/" target="_blank" rel="noopener">Immersion</a>
+      <a href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">For Care</a>
+    </div>
+    <div>
+      <p class="muted">Discovery conversations</p>
+      <a href="mailto:wolfie@fusefoundry.asia">wolfie@fusefoundry.asia</a>
+      <p class="muted" style="margin-top:1.4em">Care partnerships</p>
+      <a href="https://fusefoundry.asia/immersion/care/#partner" target="_blank" rel="noopener">Become a care partner ↗</a>
+    </div>
+    <div class="footer-claim">Connecting creators, technology, and possibilities.</div>
+  </div>
+  <div class="footer-bottom">
+    <span>©2026 Fuse Foundry</span>
+    <span>AI &amp; XR Integration &amp; Adoption</span>
+    <span>Singapore</span>
+  </div>
+  <a id="next-page" href="https://fusefoundry.asia/immersion/care/" target="_blank" rel="noopener">
+    <span class="mono">KEEP SCROLLING TO LEARN MORE</span>
+    <strong>FUSE IMMERSION FOR CARE</strong>
+    <span class="mono">NEXT PAGE ↗</span>
+  </a>
+</footer>
+
+</main>
+
+<!-- Reel modal -->
+<div id="reel-modal" aria-hidden="true">
+  <video id="reel-video" src="https://fusefoundry.asia/studio/phygital-reel.mp4" controls playsinline></video>
+  <button id="reel-close" class="pill">CLOSE</button>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
