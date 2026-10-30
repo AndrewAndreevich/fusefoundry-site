@@ -127,7 +127,7 @@ const FX = [
       vec3 c = mix(uBg, img(vUv), m) + edge*vec3(1., .42, .07)*.9;
       gl_FragColor = vec4(c, 1.);
     }` },
-  { name: 'Lens bend', desc: 'The image arrives curved like a fisheye lens, with colour fringes at the edges, and flattens out while the frame opens. Closest to the Lusion bend.', dur: 1.8, frag: `
+  { name: 'Lens bend', desc: 'The image arrives curved like a fisheye lens, with colour fringes at the edges, and flattens out while the frame opens. ', dur: 1.8, frag: `
     vec2 bend(vec2 uv, float k){ uv -= .5; uv *= 1. + k*dot(uv, uv); return uv*(1./(1.+k*.25)) + .5; }
     void main(){
       float e = eOut(uP);

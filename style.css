@@ -209,7 +209,7 @@ body.menu-open #menu { opacity: 1; transform: none; pointer-events: auto !import
 .featured-head { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 48px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px clamp(12px, 1.4vw, 20px); margin: 0 calc(-1 * var(--pad) + 12px); }
 /* card reveal (scroll-driven from JS via --p, 0 → 1): the frame opens out from an inset,
-   the picture inside zooms back from 1.22 and sharpens — after Lusion's featured list */
+   the picture inside zooms back from 1.22 and sharpens */
 @property --rad { syntax: '<length>'; inherits: true; initial-value: 0px; }
 .card { display: block; --p: 0; --rad: var(--radius); transition: --rad .6s var(--ease); }
 .card-media {
