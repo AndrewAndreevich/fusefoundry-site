@@ -207,7 +207,11 @@ function buildHero() {
   const center = new THREE.Vector3();
   function resize() {
     const { clientWidth: w, clientHeight: h } = canvas;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    // narrow/portrait screens: back the camera off so the whole cluster fits the width
+    const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    camera.position.z = w > 700 ? 11 : Math.max(11, 3.4 / (tanH * camera.aspect));
+    camera.updateProjectionMatrix();
     // park the cluster against the right edge so the headline (bottom-left) stays clear
     const halfW = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     center.set(w > 700 ? Math.max(0, halfW - 3.6) : 0, w > 700 ? 0.4 : 1.2, 0); // keep the headline clear
