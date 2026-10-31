@@ -80,10 +80,29 @@ document.getElementById('reel-close').addEventListener('click', closeReel);
 addEventListener('keydown', e => { if (e.key === 'Escape') { closeReel(); document.body.classList.remove('menu-open'); } });
 
 /* ---------------- ribbons drawn by scroll ---------------- */
+// The paths are authored in a 1200x900 box. Instead of letting the SVG stretch them (which distorts
+// the stroke into a vertical smear on tall mobile sections), they are re-plotted in real pixels.
 const ribbons = [...document.querySelectorAll('#ribbon path, #ribbon2 path')].map(p => {
-  p.setAttribute('pathLength', '1');
-  return { path: p, section: p.closest('section') };
+  const r = { path: p, svg: p.ownerSVGElement, section: p.closest('section'), d: p.getAttribute('d'), len: 1 };
+  r.svg.removeAttribute('preserveAspectRatio');
+  return r;
 });
+function layoutRibbons() {
+  for (const r of ribbons) {
+    const { width: w, height: h } = r.svg.getBoundingClientRect();
+    r.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    // stretch the design box over the section; on narrow screens keep the curve within the column
+    const sx = w / 1200, sy = Math.min(h, Math.max(900, w * 2.2)) / 900;
+    r.path.setAttribute('d', r.d.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g, (_, x, y) => `${(x * sx).toFixed(1)},${(y * sy).toFixed(1)}`));
+    r.path.style.strokeWidth = w < 700 ? 16 : 34;
+    r.len = r.path.getTotalLength();
+    r.path.style.strokeDasharray = `${r.len} ${r.len + 50}`;
+  }
+}
+layoutRibbons();
+addEventListener('resize', layoutRibbons);
+document.fonts.ready.then(layoutRibbons);
+addEventListener('load', layoutRibbons);
 
 /* ---------------- hero: instanced "connector" nodes ---------------- */
 function buildHero() {
@@ -373,10 +392,14 @@ const approach = document.getElementById('home-approach');
   document.body.classList.toggle('scrolled', scrollY > 60);
   const ar = approach.getBoundingClientRect();
   document.body.classList.toggle('on-dark', ar.top < 60 && ar.bottom > 60);
-  for (const { path, section } of ribbons) {
-    const r = section.getBoundingClientRect();
-    const p = clamp((innerHeight - r.top) / (r.height * 0.9));
-    path.style.strokeDashoffset = 1 - p;
+  for (const rb of ribbons) {
+    // the tip follows the scroll: drawn length tracks how far the section has passed ~3/4 down the viewport
+    const r = rb.svg.getBoundingClientRect();
+    const drawnTo = innerHeight * 0.75 - r.top;
+    const span = Math.min(r.height, Math.max(900, r.width * 2.2) * (r.height > 0 ? 1 : 0));
+    const p = clamp(drawnTo / Math.max(span, 1));
+    rb.path.style.visibility = p > 0.002 ? 'visible' : 'hidden';
+    rb.path.style.strokeDashoffset = rb.len * (1 - p);
   }
   requestAnimationFrame(loop);
 })();
